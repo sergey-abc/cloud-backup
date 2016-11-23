@@ -1,0 +1,8 @@
+copycom_user=abc@abc.com
+copycom_pass=somepass
+mega_user=mega@abc.com
+mega_pass=megapass
+yandex_user=yandex-abc
+yandex_pass=yandexpass
+megaput_path=/usr/local/bin/megaput
+copycmd_path=/home/user/programs/Copy-3.2.01.0481/x86_64/CopyCmd
