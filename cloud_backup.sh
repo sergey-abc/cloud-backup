@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-version='0.7'
+version='0.8'
 tarcmd='/bin/tar --xz --create --verbose --verbose --file='
 zipcmd='7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on '
 outputdir="$HOME"
 backuptype="tar"
 filepassword="/$HOME/.filepass"
-logfile="$HOME/.backup/test.log"
-
+logfile="$HOME/.backup/backup.log"
 filemtime=""
 tempfile="$HOME/.tempfilelist"
 uploadops=""
@@ -36,6 +35,8 @@ while [  $# -gt 0 ]; do
 		echo "        -cc -- upload to copy.com"
 		echo "        -cy -- upload to yandex"
 		echo "        -cm -- upload to mega"
+		echo "        -ck -- upload to koofr"
+		echo "        -ci -- upload to icedrive"
 		echo "        -d n only add files changed sinse last n days" 
 	
 		exit 0;;
@@ -50,6 +51,11 @@ while [  $# -gt 0 ]; do
   -cm) uploadmega="1"
 		uploadops="$uploadops -cm"
 		;;		
+  -ck) uploadops="$uploadops -ck"
+		;;		
+  -ci) uploadops="$uploadops -ci"
+		;;		
+		
   -o) outputdir=$2; 
         shift;;
   -b) backuptype=$2;
@@ -111,7 +117,6 @@ do
 	skipupload=0
 	emptyarchive=0
 	backupdate=`date +%Y-%m-%d__%H_%M`
-	echo A1
 	pwd
 	backupline=`cat $backupfile | head -$currentlinenumber | tail -1`
 	if [ "x$backupline" != "x" ] 
@@ -148,14 +153,12 @@ do
 			archcmd="cd \"${rootdir}\"; ${zipcmd}"'"'"${fullarchivename}"'" "'"${currentdir}"'"'
 			fi
 			writelog 0 "Archive name: ${fullarchivename}"
-			#cd $rootdir
 			echo $backupdate >> "$backupline/timestamp.txt"
 			echo $archcmd | sh
 			result=$?
 			writelog $result "Archived"
 		else
 			writelog 0  "Diff archive, $filemtime days"
-			#cd "$rootdir"
 			fullarchivename="${outputdir}/${archivename}_${backupdate}_DIFF-${filemtime}.cpio.xz"
 			cryptedname="${outputdir}/${archivename}_${backupdate}_DIFF-${filemtime}.dat"
 			echo $backupdate >> "${rootdir}/${currentdir}/timestamp.txt"
@@ -165,9 +168,8 @@ do
 			echo "pwd $ppp"
 			echo "Diff archive, $filemtime days" >> "$rootdir/$currentdir/timestamp.txt"
 			filemtimemin=`expr  $filemtime \* 1440`
-			filecountcmd="cd \"$rootdir\"; find  \"./$currentdir\" -type f -cmin -$filemtimemin > $tempfile"
+			filecountcmd="cd \"$rootdir\"; find  \"./$currentdir\" -type f -mmin -$filemtimemin > $tempfile"
 			echo $filecountcmd | sh
-			echo B3_
 			tempfilelines=`cat $tempfile | grep -v "$currentdir/timestamp.txt" | wc -l | cut -d " " -f 1`
 			if [ "x$tempfilelines" = "x0" ]
 			then
@@ -175,7 +177,7 @@ do
 			 skipupload=1
 			 emptyarchive=1
 			else
-			 archcmd="cd \"$rootdir\"; find  \"./$currentdir\" -cmin -$filemtimemin > $tempfile"
+			 archcmd="cd \"$rootdir\"; find  \"./$currentdir\" -mmin -$filemtimemin > $tempfile"
 			 echo $archcmd | sh
 			 archcmd='XZ_OPT="-9"'" cd \"$rootdir\"; cat $tempfile | cpio -ov |  xz --stdout > "'"'"$fullarchivename"'"'
 			 echo $archcmd | sh
