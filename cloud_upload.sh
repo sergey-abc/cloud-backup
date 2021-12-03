@@ -91,7 +91,6 @@ function iceupload
 				shortname=`echo "$1" |  rev |  cut -d "/" -f 1 | rev`
 				#icecmd="curl --basic --user '${ice_user}:${ice_pass}' -T \"${filetoupload}\" \"https://webdav.icedrive.io/my-files/${shortname}\""
 				icecmd="/usr/bin/davix-put --userlogin $ice_user --userpass $ice_pass \"${filetoupload}\" \"davs://webdav.icedrive.io/my-files/${shortname}\""
-				echo $icecmd
 				echo $icecmd | sh
 				result=$?
 				writelog $result "\"${shortname}\" uploaded to icedrive"
